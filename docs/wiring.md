@@ -36,11 +36,13 @@ Para poder leerla con el ADC del Arduino (0–5V) se necesita un divisor
 de tensión que eleve el punto de referencia a 2.5V (bias).
 
 ```
-5V ──┬── 10kΩ ──┬── 100Ω ── A0
-     │          │
-    10kΩ      SCT-013
-     │          │ (secundario)
-GND ─┴──────────┴─────────── GND
+       5V ──┬── 10kΩ (R1) ──┬──── A0
+            │               │
+           10kΩ (R2)      SCT-013
+            │               │ (secundario)
+           GND ─────────────┴──── GND
+
+           (nodo central) ──┤ 10µF (C1) ┤── GND
 ```
 
 - El divisor 10kΩ/10kΩ establece 2.5V en el nodo central.
@@ -57,14 +59,14 @@ Conectar con cable UTP (3 hilos). Mantener el cable alejado de los
 cables de alimentación de los motores para minimizar interferencias EMI.
 
 ```
-┌─────────────────┐              ┌─────────────────┐
-│     CAJA A      │              │     CAJA B      │
-│                 │              │                 │
-│  D5 (sync out) ─┼──────────────┼─ D3 (sync in)   │
-│  D3 (sync in)  ─┼──────────────┼─ D5 (sync out)  │
-│  GND           ─┼──────────────┼─ GND            │
-│                 │              │                 │
-└─────────────────┘              └─────────────────┘
+┌─────────────────┐    UTP Cat5    ┌─────────────────┐
+│     CAJA A      │                │     CAJA B      │
+│                 │                │                 │
+│  D5 (sync out) ─┼────────────────┼─ D3 (sync in)   │
+│  D3 (sync in)  ─┼────────────────┼─ D5 (sync out)  │
+│  GND           ─┼────────────────┼─ GND            │
+│                 │                │                 │
+└─────────────────┘                └─────────────────┘
 ```
 
 **Pull-down**: colocar una resistencia de 10kΩ entre `D3` y `GND`
