@@ -33,9 +33,10 @@ dos sierras esté en uso.
 dust-collector-controller/
 ├── firmware/
 │   └── aspiradora/
-│       └── aspiradora.ino   <- sketch principal (abrir con Arduino IDE)
+│       └── aspiradora.ino       <- sketch principal (abrir con Arduino IDE)
 ├── docs/
-│   └── wiring.md            <- diagrama de conexiones y notas de hardware
+│   ├── wiring.md                <- diagrama de conexiones y notas de hardware
+│   └── wiring_diagram.html      <- diagrama interactivo (abrir en navegador)
 └── README.md
 ```
 
@@ -49,9 +50,9 @@ dust-collector-controller/
 | YHDC SCT-013 10A/1V | Sensor de corriente en pinza |
 | Módulo relé 2 canales 5V | Controla botones ARRANQUE y PARADA |
 | Pulsador NO | Control manual |
-| 2× resistencia 10kΩ | Divisor de bias para SCT-013 |
-| 1× resistencia 100Ω | Protección pin ADC |
-| 1× resistencia 10kΩ | Pull-down en sync input |
+| 2× resistencia 10kΩ | Divisor de bias para SCT-013 (R1 y R2) |
+| 1× capacitor 10µF 16V | Estabilización del punto de bias (C1) |
+| 1× resistencia 10kΩ | Pull-down en sync input (D3) |
 | Cable UTP (3 hilos) | Conexión entre las dos cajas |
 
 ---
@@ -68,8 +69,8 @@ dust-collector-controller/
 | `D8` | Relé canal PARADA aspiradora |
 | `D13` | LED indicador (encendido = aspiradora activa) |
 
-Ver [`docs/wiring.md`](docs/wiring.md) para el circuito de acondicionamiento
-del sensor y el diagrama de conexión entre cajas.
+Ver [`docs/wiring_diagram.html`](docs/wiring_diagram.html) para el diagrama interactivo completo,
+o [`docs/wiring.md`](docs/wiring.md) para la versión en texto.
 
 ---
 
