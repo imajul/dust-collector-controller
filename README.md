@@ -74,6 +74,95 @@ o [`docs/wiring.md`](docs/wiring.md) para la versión en texto.
 
 ---
 
+## Conexionado detallado
+
+### 1. Alimentación
+
+```
+Red 220V
+  └─[Fusible 1A / 250V]─ L ─┐
+                             ├─ Fuente Switching 12V ─ Jack DC Arduino
+  └─────────────────── N ───┘        │
+  └─────────────────── PE ── caja    └─ regulador interno → Pin 5V Arduino
+```
+
+El pin `5V` del Arduino alimenta el módulo relé y el divisor de bias del SCT-013.
+
+---
+
+### 2. Sensor de corriente SCT-013
+
+El sensor produce una señal AC centrada en 0V. El circuito bias la desplaza a 2.5V
+para que el ADC del Arduino (0–5V) pueda leerla correctamente.
+
+```
+                        ┌──[R1 10kΩ]── 5V Arduino
+                        │
+Jack 3.5mm TIP ─────────┼──────────────────────────── A0 Arduino
+(señal SCT)             │
+                        ├──[C1 10µF 16V]── GND   (estabiliza el bias)
+                        │
+                        └──[R2 10kΩ]── GND Arduino
+
+Jack 3.5mm SLEEVE ──────────────────────────────────── GND Arduino
+```
+
+> La pinza SCT-013 va sobre **un solo conductor** del cable de alimentación de la sierra.
+> El bias se auto-calibra al arrancar (sierra apagada). Valor esperado: ~512 (2.5V).
+
+---
+
+### 3. Cable de sincronía entre cajas
+
+Permite que la aspiradora permanezca activa mientras cualquiera de las dos sierras esté en uso.
+Usar cable UTP Cat5 (3 hilos). Mantenerlo alejado de los cables de alimentación de los motores.
+
+```
+┌──────────────────┐   UTP Cat5   ┌──────────────────┐
+│      CAJA A      │              │      CAJA B      │
+│                  │              │                  │
+│  D5 (sync out) ──┼──────────────┼── D3 (sync in)   │
+│  D3 (sync in)  ──┼──────────────┼── D5 (sync out)  │
+│  GND           ──┼──────────────┼── GND            │
+│                  │              │                  │
+└──────────────────┘              └──────────────────┘
+```
+
+> Resistencia pull-down de **10kΩ entre D3 y GND** en cada Arduino.
+> Garantiza lectura LOW cuando la otra caja está apagada o desconectada.
+
+---
+
+### 4. Módulo relé → Aspiradora
+
+Los relés simulan el pulsado de los botones físicos de la aspiradora (150ms).
+Conectar los contactos NA (normalmente abierto) **en paralelo** con cada botón.
+
+```
+Arduino D7 ── IN1 ──┐
+Arduino D8 ── IN2 ──┤  Módulo Relé 2CH   COM1 + NO1 ── Botón ARRANQUE asp.
+Arduino  5V ─ VCC ──┤  (optoacoplador)   COM2 + NO2 ── Botón PARADA asp.
+Arduino GND ─ GND ──┘
+```
+
+> Medir con multímetro la tensión en los terminales del botón antes de conectar.
+> Si hay baja tensión (12–24V): usar el módulo como está.
+> Si hay 220V: usar relé industrial 220V/10A y cable 2×1.5mm².
+
+---
+
+### 5. Pulsador manual
+
+```
+D2 Arduino ── Terminal 1 ──[Pulsador NO]── Terminal 2 ── GND Arduino
+```
+
+El código activa `INPUT_PULLUP` internamente: no se necesita resistencia externa.
+D2 es el único pin con INT0 en el Arduino Uno, lo que permite detectar el
+flanco de bajada por interrupción hardware (respuesta instantánea).
+
+---
+
 ## Cómo cargar el firmware
 
 1. Abrir `firmware/aspiradora/aspiradora.ino` con **Arduino IDE 1.8+** o **Arduino IDE 2**
