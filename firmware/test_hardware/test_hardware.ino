@@ -24,7 +24,7 @@ const int PIN_RELE_OFF = 8;
 
 const int   MUESTRAS         = 200;
 const int   DELAY_MUESTRA_US = 200;
-const float FACTOR_CAL       = 0.04883;
+const float FACTOR_CAL       = 0.08574;  // calibrado: 7.9A reales / 4.5A leidos
 const int   DURACION_PULSO   = 500;
 
 const float UMBRAL_ON        = 0.8;    // A → sierra encendida

@@ -183,9 +183,12 @@ El firmware es idéntico en ambas cajas; solo cambia `MI_ID`.
 
 ### Factor de corriente (`FACTOR_CAL`)
 
-El valor por defecto (`0.04883`) está calculado para el sensor SCT-013 10A/1V
-con ADC de 10 bits y referencia de 5V. Si la lectura no coincide con un
-multímetro de gancho:
+El valor (`0.08574`) fue calibrado midiendo 7.9A reales con pinza amperimétrica
+contra la lectura del serial (4.5A) con el sensor físico instalado.
+El valor teórico para SCT-013 10A/1V es `0.04883`, pero los sensores chinos
+suelen tener tolerancias importantes en la resistencia de carga interna.
+
+Si cambiás el sensor, recalibrá con la fórmula:
 
 ```
 FACTOR_CAL_nuevo = FACTOR_CAL_actual × (A_reales / A_leidos)
