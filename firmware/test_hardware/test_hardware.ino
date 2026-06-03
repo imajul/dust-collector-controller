@@ -9,10 +9,13 @@
 //    D7  → IN1 relé ARRANQUE (ON)
 //    D8  → IN2 relé PARADA   (OFF)
 //
-//  Comandos por Monitor Serial (9600 baud, "Nueva línea"):
-//    o  → pulsa relé ON  (150ms)
-//    f  → pulsa relé OFF (150ms)
-//    cualquier tecla → muestra lectura de corriente
+//  Comportamiento automático:
+//    I ≥ 0.8A → pulsa relé ON
+//    I < 0.4A → espera 3s → pulsa relé OFF
+//
+//  Comandos por Monitor Serial (9600 baud):
+//    o  → fuerza pulso relé ON
+//    f  → fuerza pulso relé OFF
 // ================================================================
 
 const int PIN_SCT      = A0;
@@ -24,7 +27,14 @@ const int   DELAY_MUESTRA_US = 200;
 const float FACTOR_CAL       = 0.04883;
 const int   DURACION_PULSO   = 150;
 
-int bias = 512;
+const float UMBRAL_ON        = 0.8;    // A → sierra encendida
+const float UMBRAL_OFF       = 0.4;    // A → sierra apagada
+const unsigned long RETARDO  = 3000;   // ms antes de apagar (reducido para test)
+
+int  bias            = 512;
+bool aspiradora_ON   = false;
+bool sierra_ON       = false;
+unsigned long t_apagado = 0;
 
 // ── leerRMS ────────────────────────────────────────────────────
 float leerRMS() {
@@ -48,19 +58,32 @@ void pulsarRele(int pin, const char* nombre) {
   Serial.println(F("OK"));
 }
 
+void encender() {
+  if (!aspiradora_ON) {
+    pulsarRele(PIN_RELE_ON, "RELE ON  (ARRANQUE)");
+    aspiradora_ON = true;
+  }
+}
+
+void apagar() {
+  if (aspiradora_ON) {
+    pulsarRele(PIN_RELE_OFF, "RELE OFF (PARADA)  ");
+    aspiradora_ON = false;
+  }
+}
+
 // ── setup ──────────────────────────────────────────────────────
 void setup() {
-  pinMode(PIN_RELE_ON,  OUTPUT); digitalWrite(PIN_RELE_ON,  HIGH);  // HIGH = reposo (relé abierto)
+  pinMode(PIN_RELE_ON,  OUTPUT); digitalWrite(PIN_RELE_ON,  HIGH);
   pinMode(PIN_RELE_OFF, OUTPUT); digitalWrite(PIN_RELE_OFF, HIGH);
 
   Serial.begin(9600);
   Serial.println(F("================================================"));
-  Serial.println(F("  TEST DE HARDWARE  v1.0"));
+  Serial.println(F("  TEST DE HARDWARE  v1.1"));
   Serial.println(F("  SCT-013 (A0) | Relé ON (D7) | Relé OFF (D8)"));
   Serial.println(F("================================================"));
 
-  // Calibrar bias (sierra debe estar apagada)
-  Serial.print(F("Calibrando bias... "));
+  Serial.print(F("Calibrando bias (sierra apagada)... "));
   long suma = 0;
   for (int i = 0; i < MUESTRAS; i++) {
     suma += analogRead(PIN_SCT);
@@ -72,29 +95,62 @@ void setup() {
   Serial.println(F("  (esperado: ~512)"));
 
   Serial.println();
-  Serial.println(F("Comandos: [o]=Rele ON  [f]=Rele OFF  [Enter]=Leer corriente"));
-  Serial.println();
+  Serial.println(F("AUTO: ON si I>=0.8A | OFF si I<0.4A por 3s"));
+  Serial.println(F("MANUAL: [o]=ON  [f]=OFF"));
+  Serial.println(F("------------------------------------------------"));
+  Serial.println(F("I(A)    | Sierra | Aspiradora | Estado"));
 }
 
 // ── loop ───────────────────────────────────────────────────────
 void loop() {
 
-  // Leer corriente y mostrar continuamente cada ~500ms
+  // ── Leer corriente cada 500ms ─────────────────────────────
   static unsigned long t_anterior = 0;
   if (millis() - t_anterior >= 500) {
     t_anterior = millis();
+
     float I = leerRMS();
-    Serial.print(F("I = "));
+
+    // Histéresis detección sierra
+    if (!sierra_ON && I >= UMBRAL_ON)  sierra_ON = true;
+    if ( sierra_ON && I <  UMBRAL_OFF) sierra_ON = false;
+
+    // Lógica automática
+    if (sierra_ON) {
+      t_apagado = millis();
+      encender();
+    } else {
+      if (aspiradora_ON) {
+        unsigned long transcurrido = millis() - t_apagado;
+        if (transcurrido >= RETARDO) {
+          apagar();
+        }
+      }
+    }
+
+    // Monitor serial
     Serial.print(I, 3);
-    Serial.print(F(" A"));
-    if (I >= 0.8) Serial.print(F("  *** SIERRA ENCENDIDA ***"));
-    Serial.println();
+    Serial.print(F("A | "));
+    Serial.print(sierra_ON      ? F("ON  ") : F("OFF "));
+    Serial.print(F(" | "));
+    Serial.print(aspiradora_ON  ? F("ON        ") : F("OFF       "));
+    Serial.print(F(" | "));
+    if (sierra_ON) {
+      Serial.println(F("sierra detectada"));
+    } else if (aspiradora_ON) {
+      unsigned long resta = RETARDO - (millis() - t_apagado);
+      Serial.print(F("apagando en "));
+      Serial.print(resta / 1000 + 1);
+      Serial.println(F("s..."));
+    } else {
+      Serial.println(F("en reposo"));
+    }
   }
 
-  // Comandos por serial
+  // ── Comandos manuales ─────────────────────────────────────
   if (Serial.available()) {
     char c = Serial.read();
-    if (c == 'o' || c == 'O') pulsarRele(PIN_RELE_ON,  "RELE ON  (ARRANQUE)");
-    if (c == 'f' || c == 'F') pulsarRele(PIN_RELE_OFF, "RELE OFF (PARADA)  ");
+    if (c == 'o' || c == 'O') { aspiradora_ON = false; encender(); }
+    if (c == 'f' || c == 'F') { aspiradora_ON = true;  apagar();  }
   }
 }
