@@ -152,9 +152,9 @@ float leerRMS() {
 //  Bloqueante 150ms, pero ocurre muy puntualmente
 // ================================================================
 void pulsarRele(int pin) {
-  digitalWrite(pin, HIGH);
+  digitalWrite(pin, LOW);   // activo en LOW: cierra el relé
   delay(DURACION_PULSO_MS);
-  digitalWrite(pin, LOW);
+  digitalWrite(pin, HIGH);  // reposo en HIGH: abre el relé
 }
 
 // ================================================================
@@ -204,8 +204,8 @@ void procesarPulsador() {
 //  SETUP
 // ================================================================
 void setup() {
-  pinMode(PIN_RELE_ON,  OUTPUT); digitalWrite(PIN_RELE_ON,  LOW);
-  pinMode(PIN_RELE_OFF, OUTPUT); digitalWrite(PIN_RELE_OFF, LOW);
+  pinMode(PIN_RELE_ON,  OUTPUT); digitalWrite(PIN_RELE_ON,  HIGH);  // HIGH = reposo (activo en LOW)
+  pinMode(PIN_RELE_OFF, OUTPUT); digitalWrite(PIN_RELE_OFF, HIGH);
   pinMode(PIN_SYNC_OUT, OUTPUT); digitalWrite(PIN_SYNC_OUT, LOW);
   pinMode(PIN_SYNC_IN,  INPUT);  // pull-down externo 10kΩ a GND
   pinMode(PIN_LED,      OUTPUT); digitalWrite(PIN_LED,      LOW);

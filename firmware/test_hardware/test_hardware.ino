@@ -42,16 +42,16 @@ void pulsarRele(int pin, const char* nombre) {
   Serial.print(F(">>> Pulso "));
   Serial.print(nombre);
   Serial.print(F(" ... "));
-  digitalWrite(pin, HIGH);
+  digitalWrite(pin, LOW);   // activo en LOW: cierra el relé
   delay(DURACION_PULSO);
-  digitalWrite(pin, LOW);
+  digitalWrite(pin, HIGH);  // reposo en HIGH: abre el relé
   Serial.println(F("OK"));
 }
 
 // ── setup ──────────────────────────────────────────────────────
 void setup() {
-  pinMode(PIN_RELE_ON,  OUTPUT); digitalWrite(PIN_RELE_ON,  LOW);
-  pinMode(PIN_RELE_OFF, OUTPUT); digitalWrite(PIN_RELE_OFF, LOW);
+  pinMode(PIN_RELE_ON,  OUTPUT); digitalWrite(PIN_RELE_ON,  HIGH);  // HIGH = reposo (relé abierto)
+  pinMode(PIN_RELE_OFF, OUTPUT); digitalWrite(PIN_RELE_OFF, HIGH);
 
   Serial.begin(9600);
   Serial.println(F("================================================"));
