@@ -25,7 +25,7 @@ const int PIN_RELE_OFF = 8;
 const int   MUESTRAS         = 200;
 const int   DELAY_MUESTRA_US = 200;
 const float FACTOR_CAL       = 0.04883;
-const int   DURACION_PULSO   = 150;
+const int   DURACION_PULSO   = 500;
 
 const float UMBRAL_ON        = 0.8;    // A → sierra encendida
 const float UMBRAL_OFF       = 0.4;    // A → sierra apagada
@@ -104,6 +104,13 @@ void setup() {
 // ── loop ───────────────────────────────────────────────────────
 void loop() {
 
+  // ── Comandos manuales (primero, para que el timer vea estado actualizado) ──
+  if (Serial.available()) {
+    char c = Serial.read();
+    if (c == 'o' || c == 'O') { pulsarRele(PIN_RELE_ON,  "RELE ON  (ARRANQUE)"); aspiradora_ON = true;  }
+    if (c == 'f' || c == 'F') { pulsarRele(PIN_RELE_OFF, "RELE OFF (PARADA)  "); aspiradora_ON = false; }
+  }
+
   // ── Leer corriente cada 500ms ─────────────────────────────
   static unsigned long t_anterior = 0;
   if (millis() - t_anterior >= 500) {
@@ -118,7 +125,7 @@ void loop() {
     // Lógica automática
     if (sierra_ON) {
       t_apagado = millis();
-      encender();
+      encender();  // solo pulsa si aspiradora_ON es false
     } else {
       if (aspiradora_ON) {
         unsigned long transcurrido = millis() - t_apagado;
@@ -145,12 +152,5 @@ void loop() {
     } else {
       Serial.println(F("en reposo"));
     }
-  }
-
-  // ── Comandos manuales ─────────────────────────────────────
-  if (Serial.available()) {
-    char c = Serial.read();
-    if (c == 'o' || c == 'O') { aspiradora_ON = false; encender(); }
-    if (c == 'f' || c == 'F') { aspiradora_ON = true;  apagar();  }
   }
 }
