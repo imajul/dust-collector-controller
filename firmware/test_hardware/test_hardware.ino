@@ -39,12 +39,26 @@ unsigned long t_apagado = 0;
 // ── leerRMS ────────────────────────────────────────────────────
 float leerRMS() {
   long suma = 0;
+  int adc_min = 1023, adc_max = 0;
+
   for (int i = 0; i < MUESTRAS; i++) {
-    int v = analogRead(PIN_SCT) - bias;
+    int adc = analogRead(PIN_SCT);
+    if (adc < adc_min) adc_min = adc;
+    if (adc > adc_max) adc_max = adc;
+    int v = adc - bias;
     suma += (long)v * v;
     delayMicroseconds(DELAY_MUESTRA_US);
   }
-  return sqrt((float)suma / MUESTRAS) * FACTOR_CAL;
+
+  float rms_counts = sqrt((float)suma / MUESTRAS);
+
+  Serial.print(F("  ADC min="));  Serial.print(adc_min);
+  Serial.print(F(" max="));       Serial.print(adc_max);
+  Serial.print(F(" bias="));      Serial.print(bias);
+  Serial.print(F(" rms_counts=")); Serial.print(rms_counts, 1);
+  Serial.print(F("  →  "));
+
+  return rms_counts * FACTOR_CAL;
 }
 
 // ── pulsarRele ─────────────────────────────────────────────────
