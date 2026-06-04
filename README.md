@@ -183,8 +183,16 @@ El firmware es idéntico en ambas cajas; solo cambia `MI_ID`.
 
 ### Factor de corriente (`FACTOR_CAL`)
 
-El valor (`0.08574`) fue calibrado midiendo 7.9A reales con pinza amperimétrica
-contra la lectura del serial (4.5A) con el sensor físico instalado.
+El valor (`0.06494`) fue derivado de medición con osciloscopio: 7.9A reales
+producen 594mV RMS en el secundario del SCT-013.
+
+```
+FACTOR_CAL = (5V / 1024) × (7.9A / 0.594V) = 0.004883 × 13.30 = 0.06494
+```
+
+**Importante**: este factor requiere que el **circuito de bias esté funcionando
+correctamente** (señal centrada en 2.5V). Si el bias falla, el ADC recorta la
+semiciclo negativa y la lectura será aproximadamente la mitad del valor real.
 El valor teórico para SCT-013 10A/1V es `0.04883`, pero los sensores chinos
 suelen tener tolerancias importantes en la resistencia de carga interna.
 

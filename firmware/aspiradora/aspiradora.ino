@@ -66,7 +66,7 @@ const uint8_t MI_ID = 0;
 //  10A → 1V RMS → 204.8 counts RMS con ADC 10bit / 5V ref
 //  Ajustar si la lectura no coincide con un multímetro:
 //    FACTOR_CAL_nuevo = FACTOR_CAL × (A_reales / A_leidos)
-const float FACTOR_CAL = 0.08574;  // calibrado: 7.9A reales / 4.5A leidos
+const float FACTOR_CAL = 0.06494;  // 7.9A reales / 594mV RMS osciloscopio → requiere circuito bias funcionando
 
 // ── UMBRALES (histéresis) ───────────────────────────────────────
 const float UMBRAL_ON  = 0.8;   // A → sierra ENCENDIDA
